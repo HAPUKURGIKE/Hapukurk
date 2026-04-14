@@ -98,7 +98,7 @@
 
         #hapukurk {
             position: absolute;
-            bottom: 80px;
+            bottom: 0px;
             left: 50px;
             width: 60px;
             height: 70px;
@@ -227,7 +227,7 @@
 
         .obstacle {
             position: absolute;
-            bottom: 80px;
+            bottom: 0px;
             width: 50px;
             height: 70px;
         }
@@ -467,7 +467,7 @@
         </div>
 
         <div class="game-over-screen" id="gameOverScreen">
-            <div class="game-over-text">Kurja mehe kätte võtsid! 😱</div>
+            <div class="game-over-text">Mikk sõi su ära! 😱</div>
             <div class="final-score" id="finalScore">Skoor: 0</div>
             <button class="restart-btn" onclick="restartGame()">PROOVI UUESTI</button>
         </div>
@@ -485,20 +485,22 @@
         const CUCUMBER_SIZE = 70;
         const CONTAINER_WIDTH = 800;
         const CONTAINER_HEIGHT = 400;
-        const GRAVITY = 0.6;
-        const JUMP_STRENGTH = -15;
+        const GRAVITY = 0.55;
+        const JUMP_STRENGTH = -18;
+        const MAX_JUMP_HEIGHT = 200;
 
         let gameRunning = false;
         let score = 0;
-        let cucumberY = CONTAINER_HEIGHT - GROUND_HEIGHT - 70;
+        let cucumberY = CONTAINER_HEIGHT - GROUND_HEIGHT;
         let cucumberVelY = 0;
         let isJumping = false;
 
         let obstacles = [];
-        let obstacleSpeed = 7;
-        let spawnRate = 120;
+        let obstacleSpeed = 2.5;
+        let spawnRate = 150;
         let frameCount = 0;
-
+        let obstaclesDefeated = 0;
+        let gameWon = false;
         function startGame() {
             startScreen.classList.add('hidden');
             gameRunning = true;
@@ -506,11 +508,13 @@
             score = 0;
             scoreDisplay.textContent = 'Skoor: 0';
             obstacles = [];
-            obstacleSpeed = 7;
-            spawnRate = 120;
-            cucumberY = CONTAINER_HEIGHT - GROUND_HEIGHT - 70;
+            obstacleSpeed = 2.5;
+            spawnRate = 150;
+            cucumberY = CONTAINER_HEIGHT - GROUND_HEIGHT;
             cucumberVelY = 0;
             isJumping = false;
+            obstaclesDefeated = 0;
+            gameWon = false;
             gameLoop();
         }
 
@@ -540,9 +544,15 @@
             cucumberVelY += GRAVITY;
             cucumberY += cucumberVelY;
 
+            // Limit max jump height to keep visible
+            if (cucumberY < CONTAINER_HEIGHT - GROUND_HEIGHT - MAX_JUMP_HEIGHT) {
+                cucumberY = CONTAINER_HEIGHT - GROUND_HEIGHT - MAX_JUMP_HEIGHT;
+                cucumberVelY = 0;
+            }
+
             // Ground collision
-            if (cucumberY >= CONTAINER_HEIGHT - GROUND_HEIGHT - 70) {
-                cucumberY = CONTAINER_HEIGHT - GROUND_HEIGHT - 70;
+            if (cucumberY >= CONTAINER_HEIGHT - GROUND_HEIGHT) {
+                cucumberY = CONTAINER_HEIGHT - GROUND_HEIGHT;
                 cucumberVelY = 0;
                 isJumping = false;
             }
@@ -551,8 +561,8 @@
             frameCount++;
             if (frameCount % spawnRate === 0) {
                 createObstacle();
-                spawnRate = Math.max(60, spawnRate - 2);
-                obstacleSpeed += 0.5;
+                spawnRate = Math.max(60, spawnRate - 1);
+                obstacleSpeed += 0.05;
             }
 
             // Update obstacles
@@ -563,7 +573,15 @@
                 if (!obs.passed && obs.x + obs.width < 50) {
                     obs.passed = true;
                     score++;
+                    obstaclesDefeated++;
                     scoreDisplay.textContent = `Skoor: ${score}`;
+                    
+                    // Check if won
+                    if (obstaclesDefeated >= 20) {
+                        gameRunning = false;
+                        gameWon = true;
+                        winGame();
+                    }
                 }
 
                 // Collision detection
@@ -575,14 +593,14 @@
             // Remove off-screen obstacles
             obstacles = obstacles.filter(obs => obs.x + obs.width > 0);
 
-            hapukurk.style.bottom = (CONTAINER_HEIGHT - GROUND_HEIGHT - 70 - cucumberY) + 'px';
+            hapukurk.style.bottom = (CONTAINER_HEIGHT - GROUND_HEIGHT - cucumberY) + 'px';
         }
 
         function checkCollision(obstacle) {
             const cucumberX = 50;
             const cucumberRight = cucumberX + 40;
             const cucumberBottom = CONTAINER_HEIGHT - cucumberY;
-            const cucumberTop = cucumberBottom - CUCUMBER_SIZE;
+            const cucumberTop = cucumberBottom - 50;
             
             const obstacleRight = obstacle.x + obstacle.width;
             const obstacleBottom = CONTAINER_HEIGHT - (CONTAINER_HEIGHT - GROUND_HEIGHT - obstacle.height);
@@ -602,75 +620,22 @@
                 const div = document.createElement('div');
                 div.className = 'obstacle';
                 div.style.left = obs.x + 'px';
-                div.style.bottom = (CONTAINER_HEIGHT - GROUND_HEIGHT - obs.height) + 'px';
+                div.style.bottom = (GROUND_HEIGHT - obs.height) + 'px';
 
                 const head = document.createElement('div');
                 head.className = 'obstacle-head';
+                head.style.width = '100%';
+                head.style.height = '100%';
 
-                const headBg = document.createElement('div');
-                headBg.className = 'head-bg';
+                const img = document.createElement('img');
+                img.src = 'mikk (1).jpg';
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '50% 50% 45% 45%';
+                img.style.display = 'block';
                 
-                // Sideburns
-                const sideburnsLeft = document.createElement('div');
-                sideburnsLeft.className = 'sideburns sideburns-left';
-                headBg.appendChild(sideburnsLeft);
-
-                const sideburnsRight = document.createElement('div');
-                sideburnsRight.className = 'sideburns sideburns-right';
-                headBg.appendChild(sideburnsRight);
-
-                // Vundid
-                const vundidLeft = document.createElement('div');
-                vundidLeft.className = 'vundid vundid-left';
-                headBg.appendChild(vundidLeft);
-
-                const vundidRight = document.createElement('div');
-                vundidRight.className = 'vundid vundid-right';
-                headBg.appendChild(vundidRight);
-
-                // Eyes
-                const eyeLeft = document.createElement('div');
-                eyeLeft.className = 'angry-eyes angry-eyes-left';
-                headBg.appendChild(eyeLeft);
-
-                const eyeRight = document.createElement('div');
-                eyeRight.className = 'angry-eyes angry-eyes-right';
-                headBg.appendChild(eyeRight);
-
-                // Nose
-                const nose = document.createElement('div');
-                nose.className = 'angry-nose';
-                headBg.appendChild(nose);
-
-                // Mouth
-                const mouth = document.createElement('div');
-                mouth.className = 'angry-mouth-man';
-                const teeth = document.createElement('div');
-                teeth.className = 'teeth';
-                mouth.appendChild(teeth);
-                headBg.appendChild(mouth);
-
-                // Beard
-                const beard = document.createElement('div');
-                beard.className = 'beard';
-                headBg.appendChild(beard);
-
-                head.appendChild(headBg);
-
-                // Fork/Knife
-                const fork = document.createElement('div');
-                fork.style.position = 'absolute';
-                fork.style.right = '-18px';
-                fork.style.bottom = '15px';
-                fork.style.width = '22px';
-                fork.style.height = '45px';
-                fork.innerHTML = `
-                    <div style="position: absolute; width: 2px; height: 40px; background: #8b7355; left: 2px;"></div>
-                    <div style="position: absolute; width: 2px; height: 40px; background: #8b7355; left: 7px;"></div>
-                    <div style="position: absolute; width: 2px; height: 40px; background: #8b7355; left: 12px;"></div>
-                    <div style="position: absolute; width: 10px; height: 8px; background: #8b7355; bottom: 0; left: 6px; border-radius: 2px;"></div>
-                `;
-                head.appendChild(fork);
+                head.appendChild(img);
 
                 div.appendChild(head);
                 gameContainer.appendChild(div);
@@ -690,6 +655,140 @@
             gameRunning = false;
             finalScore.textContent = `Skoor: ${score}`;
             gameOverScreen.classList.add('show');
+        }
+
+        function winGame() {
+            const winScreen = document.getElementById('gameOverScreen');
+            const winText = winScreen.querySelector('.game-over-text');
+            const winScore = winScreen.querySelector('.final-score');
+            const restartBtn = winScreen.querySelector('.restart-btn');
+            
+            winText.textContent = 'Sa võitsid! 🎉';
+            winScore.textContent = `Skoor: ${score}`;
+            restartBtn.style.display = 'none';
+            
+            winScreen.classList.add('show');
+            
+            // Show Mikk with legs at bottom
+            showDefeatedMikk();
+        }
+
+        function showDefeatedMikk() {
+            // Remove all obstacles
+            const obstacleElems = gameContainer.querySelectorAll('.obstacle');
+            obstacleElems.forEach(el => el.remove());
+            
+            // Create defeated Mikk
+            const defeatedMikk = document.createElement('div');
+            defeatedMikk.id = 'defeatedMikk';
+            defeatedMikk.style.position = 'absolute';
+            defeatedMikk.style.left = '375px';
+            defeatedMikk.style.bottom = '80px';
+            defeatedMikk.style.width = '50px';
+            defeatedMikk.style.height = '70px';
+            defeatedMikk.style.cursor = 'pointer';
+            defeatedMikk.title = 'Kliki siia!';
+            
+            // Mikk's head
+            const mikkHead = document.createElement('img');
+            mikkHead.src = 'mikk (1).jpg';
+            mikkHead.style.width = '100%';
+            mikkHead.style.height = '65%';
+            mikkHead.style.borderRadius = '50% 50% 45% 45%';
+            mikkHead.style.objectFit = 'cover';
+            mikkHead.style.display = 'block';
+            
+            // Mikk's legs
+            const legs = document.createElement('div');
+            legs.style.display = 'flex';
+            legs.style.justifyContent = 'space-around';
+            legs.style.height = '35%';
+            legs.style.paddingTop = '2px';
+            legs.style.alignItems = 'flex-start';
+            
+            const leg1 = document.createElement('div');
+            leg1.style.width = '4px';
+            leg1.style.height = '12px';
+            leg1.style.background = '#8b7355';
+            leg1.style.borderRadius = '2px';
+            
+            const leg2 = document.createElement('div');
+            leg2.style.width = '4px';
+            leg2.style.height = '12px';
+            leg2.style.background = '#8b7355';
+            leg2.style.borderRadius = '2px';
+            
+            legs.appendChild(leg1);
+            legs.appendChild(leg2);
+            
+            defeatedMikk.appendChild(mikkHead);
+            defeatedMikk.appendChild(legs);
+            
+            // Add click handler for stabbing
+            defeatedMikk.addEventListener('click', () => {
+                stabMikk(defeatedMikk);
+            });
+            
+            gameContainer.appendChild(defeatedMikk);
+        }
+
+        function stabMikk(mikkElement) {
+            // Add animation styles if not already there
+            if (!document.getElementById('stab-styles')) {
+                const style = document.createElement('style');
+                style.id = 'stab-styles';
+                style.textContent = `
+                    @keyframes stab {
+                        0% { transform: rotate(-45deg) translateY(-15px); opacity: 1; }
+                        100% { transform: rotate(-45deg) translateY(15px); opacity: 1; }
+                    }
+                    @keyframes bloodFade {
+                        0% { opacity: 1; transform: scale(1); }
+                        100% { opacity: 0; transform: scale(1.5); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Create knife
+            const knife = document.createElement('div');
+            knife.style.position = 'absolute';
+            knife.style.left = '15px';
+            knife.style.top = '10px';
+            knife.style.width = '6px';
+            knife.style.height = '35px';
+            knife.style.background = 'linear-gradient(to bottom, #ffffff, #c0c0c0)';
+            knife.style.border = '1px solid #888';
+            knife.style.borderRadius = '2px';
+            knife.style.transform = 'rotate(-45deg)';
+            knife.style.animation = 'stab 0.6s ease-in-out';
+            knife.style.transformOrigin = 'top center';
+            
+            mikkElement.appendChild(knife);
+            
+            // Add blood effect
+            const blood = document.createElement('div');
+            blood.style.position = 'absolute';
+            blood.style.left = '15px';
+            blood.style.top = '20px';
+            blood.style.width = '15px';
+            blood.style.height = '15px';
+            blood.style.background = 'radial-gradient(circle, #ff3333, #8b0000)';
+            blood.style.borderRadius = '50%';
+            blood.style.animation = 'bloodFade 1s ease-out forwards';
+            mikkElement.appendChild(blood);
+            
+            // Disable clicking
+            mikkElement.style.pointerEvents = 'none';
+            
+            // Victory message
+            setTimeout(() => {
+                const winText = document.querySelector('.game-over-text');
+                winText.textContent = 'Nüüd on ta teadlik! 💀';
+                const restartBtn = document.querySelector('.restart-btn');
+                restartBtn.style.display = 'block';
+                restartBtn.textContent = 'UUS MÄNG';
+            }, 600);
         }
 
         // Keyboard input
