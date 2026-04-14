@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hapukurgike Põgeneb Kurja Mikku Eest</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .game-container {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 50%, #90EE90 50%, #228B22 100%);
+            border: 3px solid #333;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .game-over-screen.show {
+            display: flex;
+        }
+
+        .game-over-text {
+            color: #ff6b6b;
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .final-score {
+            color: white;
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+
+        .restart-btn {
+            padding: 15px 40px;
+            font-size: 24px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .restart-btn:hover {
+            background: #45a049;
+        }
+
+        .score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #333;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .instructions {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            color: #333;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        #hapukurk {
+            position: absolute;
+            bottom: 80px;
+            left: 50px;
+            width: 60px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: visible;
+            transition: transform 0.1s;
+        }
+
+        .cucumber-body {
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            background: linear-gradient(135deg, #2d5016 0%, #4a8f2c 50%, #2d5016 100%);
+            border-radius: 50% 50% 45% 45%;
+            box-shadow: 
+                inset -2px -2px 4px rgba(0, 0, 0, 0.3),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.1),
+                2px 2px 5px rgba(0, 0, 0, 0.2);
+            overflow: visible;
+        }
+
+        .cucumber-bumps {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .bump {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, #5ab33e, #2d5016);
+            border-radius: 50%;
+            opacity: 0.7;
+        }
+
+        .bump1 { width: 6px; height: 6px; top: 8px; left: 8px; }
+        .bump2 { width: 5px; height: 5px; top: 15px; right: 10px; }
+        .bump3 { width: 6px; height: 6px; top: 25px; left: 5px; }
+        .bump4 { width: 5px; height: 5px; top: 30px; right: 8px; }
+        .bump5 { width: 6px; height: 6px; top: 40px; left: 10px; }
+
+        .cucumber-face {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        .eye {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #000;
+            border-radius: 50%;
+        }
+
+        .eye-left {
+            left: 8px;
+            top: 6px;
+        }
+
+        .eye-right {
+            right: 8px;
+            top: 6px;
+        }
+
+        .mouth {
+            position: absolute;
+            width: 14px;
+            height: 8px;
+            border: 1.5px solid #000;
+            border-top: none;
+            bottom: 4px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .tongue {
+            position: absolute;
+            width: 4px;
+            height: 6px;
+            background: #ff69b4;
+            border-radius: 0 0 2px 2px;
+            bottom: 4px;
+            left: 5px;
+        }
+
+        .cucumber-legs {
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 12px;
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+        }
+
+        .leg {
+            width: 4px;
+            height: 12px;
+            background: #2d5016;
+            border-radius: 2px;
+            animation: run 0.4s infinite;
+        }
+
+        .leg-left {
+            animation-delay: 0s;
+        }
+
+        .leg-right {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes run {
+            0%, 100% { transform: rotateZ(0deg); transform-origin: top; }
+            50% { transform: rotateZ(-30deg); transform-origin: top; }
+        }
+
+        .obstacle {
+            position: absolute;
+            bottom: 80px;
+            width: 50px;
+            height: 70px;
+        }
+
+        .obstacle-head {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .head-bg {
+            width: 100%;
+            height: 80%;
+            background: #d4a574;
+            border-radius: 50% 50% 45% 45%;
+            position: relative;
+            box-shadow: 
+                inset -2px -2px 5px rgba(0, 0, 0, 0.2),
+                2px 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .angry-eyes {
+            position: absolute;
+            width: 7px;
+            height: 8px;
+            background: #000;
+            border-radius: 3px;
+            top: 15px;
+        }
+
+        .angry-eyes-left {
+            left: 10px;
+            transform: rotate(-25deg);
+        }
+
+        .angry-eyes-right {
+            right: 10px;
+            transform: rotate(25deg);
+        }
+
+        .angry-nose {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #a0826d;
+            border-radius: 50%;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .angry-mouth-man {
+            position: absolute;
+            width: 22px;
+            height: 10px;
+            background: #4a3f39;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 0 0 6px 6px;
+            box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .teeth {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: repeating-linear-gradient(
+                to right,
+                #fff 0,
+                #fff 3px,
+                transparent 3px,
+                transparent 6px
+            );
+            top: 0;
+        }
+
+        .beard {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 8px;
+            background: #333;
+            border-radius: 2px;
+            box-shadow: 0 0 0 1px #1a1a1a;
+        }
+
+        .sideburns {
+            position: absolute;
+            width: 6px;
+            height: 40px;
+            background: #333;
+            top: 20px;
+        }
+
+        .sideburns-left {
+            left: 2px;
+        }
+
+        .sideburns-right {
+            right: 2px;
+        }
+
+        .vundid {
+            position: absolute;
+            width: 8px;
+            height: 6px;
+            background: #333;
+            top: 32px;
+        }
+
+        .vundid-left {
+            left: 8px;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .vundid-right {
+            right: 8px;
+            border-radius: 0 3px 3px 0;
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(to bottom, #90EE90, #228B22);
+            border-top: 2px solid #333;
+        }
+
+        .ground-line {
+            position: absolute;
+            bottom: 50px;
+            width: 100%;
+            height: 2px;
+            background: repeating-linear-gradient(
+                to right,
+                #333 0,
+                #333 20px,
+                transparent 20px,
+                transparent 40px
+            );
+        }
+
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 200;
+        }
+
+        .start-screen.hidden {
+            display: none;
+        }
+
+        .title {
+            color: #ffeb3b;
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .start-instructions {
+            color: white;
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .start-btn {
+            padding: 15px 50px;
+            font-size: 24px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .start-btn:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="ground">
+            <div class="ground-line"></div>
+        </div>
+
+        <div class="score" id="score">Skoor: 0</div>
+        <div class="instructions">Tühik = Hüppa</div>
+
+        <div id="hapukurk">
+            <div class="cucumber-body">
+                <div class="cucumber-bumps">
+                    <div class="bump bump1"></div>
+                    <div class="bump bump2"></div>
+                    <div class="bump bump3"></div>
+                    <div class="bump bump4"></div>
+                    <div class="bump bump5"></div>
+                </div>
+                <div class="cucumber-face">
+                    <div class="eye eye-left"></div>
+                    <div class="eye eye-right"></div>
+                    <div class="mouth">
+                        <div class="tongue"></div>
+                    </div>
+                </div>
+                <div class="cucumber-legs">
+                    <div class="leg leg-left"></div>
+                    <div class="leg leg-right"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="start-screen" id="startScreen">
+        <div class="title">🥒 Hapukurgike Põgeneb Kurja Mikku Eest 🥒</div>
+            <div class="start-instructions">
+                <p>Sa oled nunnu näoga hapukurk!</p>
+                <p>Pead ära jooksma kurja näljase mehega!</p>
+                <p style="margin-top: 20px; font-size: 18px; color: #ffeb3b;">Kasuta TÜHIKUT hüppamiseks</p>
+            </div>
+            <button class="start-btn" onclick="startGame()">ALUSTA MÄNGU</button>
+        </div>
+
+        <div class="game-over-screen" id="gameOverScreen">
+            <div class="game-over-text">Kurja mehe kätte võtsid! 😱</div>
+            <div class="final-score" id="finalScore">Skoor: 0</div>
+            <button class="restart-btn" onclick="restartGame()">PROOVI UUESTI</button>
+        </div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('gameContainer');
+        const hapukurk = document.getElementById('hapukurk');
+        const scoreDisplay = document.getElementById('score');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const startScreen = document.getElementById('startScreen');
+        const finalScore = document.getElementById('finalScore');
+
+        const GROUND_HEIGHT = 80;
+        const CUCUMBER_SIZE = 70;
+        const CONTAINER_WIDTH = 800;
+        const CONTAINER_HEIGHT = 400;
+        const GRAVITY = 0.6;
+        const JUMP_STRENGTH = -15;
+
+        let gameRunning = false;
+        let score = 0;
+        let cucumberY = CONTAINER_HEIGHT - GROUND_HEIGHT - 70;
+        let cucumberVelY = 0;
+        let isJumping = false;
+
+        let obstacles = [];
+        let obstacleSpeed = 7;
+        let spawnRate = 120;
+        let frameCount = 0;
+
+        function startGame() {
+            startScreen.classList.add('hidden');
+            gameRunning = true;
+            gameOverScreen.classList.remove('show');
+            score = 0;
+            scoreDisplay.textContent = 'Skoor: 0';
+            obstacles = [];
+            obstacleSpeed = 7;
+            spawnRate = 120;
+            cucumberY = CONTAINER_HEIGHT - GROUND_HEIGHT - 70;
+            cucumberVelY = 0;
+            isJumping = false;
+            gameLoop();
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function createObstacle() {
+            const types = ['angry-man', 'knife-man'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            const obstacle = {
+                x: CONTAINER_WIDTH,
+                width: 50,
+                height: 70,
+                passed: false,
+                type: type
+            };
+            
+            obstacles.push(obstacle);
+        }
+
+        function updateGame() {
+            if (!gameRunning) return;
+
+            // Physics
+            cucumberVelY += GRAVITY;
+            cucumberY += cucumberVelY;
+
+            // Ground collision
+            if (cucumberY >= CONTAINER_HEIGHT - GROUND_HEIGHT - 70) {
+                cucumberY = CONTAINER_HEIGHT - GROUND_HEIGHT - 70;
+                cucumberVelY = 0;
+                isJumping = false;
+            }
+
+            // Spawn obstacles
+            frameCount++;
+            if (frameCount % spawnRate === 0) {
+                createObstacle();
+                spawnRate = Math.max(60, spawnRate - 2);
+                obstacleSpeed += 0.5;
+            }
+
+            // Update obstacles
+            obstacles.forEach(obs => {
+                obs.x -= obstacleSpeed;
+
+                // Score when obstacle passes
+                if (!obs.passed && obs.x + obs.width < 50) {
+                    obs.passed = true;
+                    score++;
+                    scoreDisplay.textContent = `Skoor: ${score}`;
+                }
+
+                // Collision detection
+                if (checkCollision(obs)) {
+                    endGame();
+                }
+            });
+
+            // Remove off-screen obstacles
+            obstacles = obstacles.filter(obs => obs.x + obs.width > 0);
+
+            hapukurk.style.bottom = (CONTAINER_HEIGHT - GROUND_HEIGHT - 70 - cucumberY) + 'px';
+        }
+
+        function checkCollision(obstacle) {
+            const cucumberX = 50;
+            const cucumberRight = cucumberX + 40;
+            const cucumberBottom = CONTAINER_HEIGHT - cucumberY;
+            const cucumberTop = cucumberBottom - CUCUMBER_SIZE;
+            
+            const obstacleRight = obstacle.x + obstacle.width;
+            const obstacleBottom = CONTAINER_HEIGHT - (CONTAINER_HEIGHT - GROUND_HEIGHT - obstacle.height);
+            const obstacleTop = obstacleBottom - obstacle.height;
+
+            return !(cucumberRight < obstacle.x || 
+                     cucumberX > obstacleRight || 
+                     cucumberBottom < obstacleTop ||
+                     cucumberTop > obstacleBottom);
+        }
+
+        function drawObstacles() {
+            const existingObstacles = gameContainer.querySelectorAll('.obstacle');
+            existingObstacles.forEach(el => el.remove());
+
+            obstacles.forEach(obs => {
+                const div = document.createElement('div');
+                div.className = 'obstacle';
+                div.style.left = obs.x + 'px';
+                div.style.bottom = (CONTAINER_HEIGHT - GROUND_HEIGHT - obs.height) + 'px';
+
+                const head = document.createElement('div');
+                head.className = 'obstacle-head';
+
+                const headBg = document.createElement('div');
+                headBg.className = 'head-bg';
+                
+                // Sideburns
+                const sideburnsLeft = document.createElement('div');
+                sideburnsLeft.className = 'sideburns sideburns-left';
+                headBg.appendChild(sideburnsLeft);
+
+                const sideburnsRight = document.createElement('div');
+                sideburnsRight.className = 'sideburns sideburns-right';
+                headBg.appendChild(sideburnsRight);
+
+                // Vundid
+                const vundidLeft = document.createElement('div');
+                vundidLeft.className = 'vundid vundid-left';
+                headBg.appendChild(vundidLeft);
+
+                const vundidRight = document.createElement('div');
+                vundidRight.className = 'vundid vundid-right';
+                headBg.appendChild(vundidRight);
+
+                // Eyes
+                const eyeLeft = document.createElement('div');
+                eyeLeft.className = 'angry-eyes angry-eyes-left';
+                headBg.appendChild(eyeLeft);
+
+                const eyeRight = document.createElement('div');
+                eyeRight.className = 'angry-eyes angry-eyes-right';
+                headBg.appendChild(eyeRight);
+
+                // Nose
+                const nose = document.createElement('div');
+                nose.className = 'angry-nose';
+                headBg.appendChild(nose);
+
+                // Mouth
+                const mouth = document.createElement('div');
+                mouth.className = 'angry-mouth-man';
+                const teeth = document.createElement('div');
+                teeth.className = 'teeth';
+                mouth.appendChild(teeth);
+                headBg.appendChild(mouth);
+
+                // Beard
+                const beard = document.createElement('div');
+                beard.className = 'beard';
+                headBg.appendChild(beard);
+
+                head.appendChild(headBg);
+
+                // Fork/Knife
+                const fork = document.createElement('div');
+                fork.style.position = 'absolute';
+                fork.style.right = '-18px';
+                fork.style.bottom = '15px';
+                fork.style.width = '22px';
+                fork.style.height = '45px';
+                fork.innerHTML = `
+                    <div style="position: absolute; width: 2px; height: 40px; background: #8b7355; left: 2px;"></div>
+                    <div style="position: absolute; width: 2px; height: 40px; background: #8b7355; left: 7px;"></div>
+                    <div style="position: absolute; width: 2px; height: 40px; background: #8b7355; left: 12px;"></div>
+                    <div style="position: absolute; width: 10px; height: 8px; background: #8b7355; bottom: 0; left: 6px; border-radius: 2px;"></div>
+                `;
+                head.appendChild(fork);
+
+                div.appendChild(head);
+                gameContainer.appendChild(div);
+            });
+        }
+
+        function gameLoop() {
+            updateGame();
+            drawObstacles();
+
+            if (gameRunning) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function endGame() {
+            gameRunning = false;
+            finalScore.textContent = `Skoor: ${score}`;
+            gameOverScreen.classList.add('show');
+        }
+
+        // Keyboard input
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!gameRunning && !startScreen.classList.contains('hidden')) {
+                    startGame();
+                } else if (gameRunning && !isJumping) {
+                    jump();
+                }
+            }
+        });
+
+        function jump() {
+            if (!isJumping && gameRunning) {
+                cucumberVelY = JUMP_STRENGTH;
+                isJumping = true;
+            }
+        }
+
+        // Start screen is shown initially
+        startScreen.classList.remove('hidden');
+    </script>
+</body>
+</html>
